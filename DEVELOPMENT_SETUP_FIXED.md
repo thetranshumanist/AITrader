@@ -18,6 +18,18 @@ The development server should now start without the previous errors. However, yo
 
 ## 🚀 Quick Start Options
 
+### Environment Validation
+
+Before starting development, validate your environment setup:
+
+```bash
+# Validate all required environment variables
+npm run validate-env
+
+# Run full setup check (environment + TypeScript)
+npm run setup:check
+```
+
 ### Option 1: Development with Mock Data
 The current `.env.local` has mock values that should allow the server to start. Some features may not work but the UI should load.
 
@@ -29,10 +41,10 @@ The current `.env.local` has mock values that should allow the server to start. 
 
 ## 📝 Next Steps
 
-1. Try starting the server: `npm run dev`
-2. If it starts successfully, the main fixes are working
-3. For full functionality, set up the real services mentioned above
-4. Check the console for any remaining warnings (these are mostly about missing real API keys)
+1. **Validate Environment**: `npm run validate-env`
+2. **Start Development Server**: `npm run dev`
+3. **Production Deployment**: See [`DEPLOYMENT_SETUP.md`](./DEPLOYMENT_SETUP.md) for CI/CD setup
+4. **Full Functionality**: Set up real services for complete features
 
 ## 🐛 Common Issues
 

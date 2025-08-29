@@ -1,0 +1,125 @@
+name: 🚀 Deployment Issue
+description: Report problems with CI/CD deployment or Vercel integration
+title: "[DEPLOY] "
+labels: ["deployment", "ci/cd"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a deployment issue! Please provide the following information to help us debug the problem.
+        
+  - type: dropdown
+    id: deployment-stage
+    attributes:
+      label: Deployment Stage
+      description: Where did the issue occur?
+      options:
+        - GitHub Actions - Test stage
+        - GitHub Actions - Build stage  
+        - GitHub Actions - Deploy Preview
+        - GitHub Actions - Deploy Production
+        - Vercel Dashboard
+        - Local deployment testing
+        - Other
+    validations:
+      required: true
+      
+  - type: textarea
+    id: error-message
+    attributes:
+      label: Error Message
+      description: Copy and paste the full error message
+      placeholder: |
+        Vercel CLI 46.1.1
+        Error: No existing credentials found. Please run `vercel login` or pass "--token"
+        Learn More: https://err.sh/vercel/no-credentials-found
+        Error: Process completed with exit code 1.
+    validations:
+      required: true
+      
+  - type: checkboxes
+    id: secrets-checklist
+    attributes:
+      label: GitHub Secrets Checklist
+      description: Verify these secrets are properly configured in your repository
+      options:
+        - label: VERCEL_TOKEN is set and valid
+        - label: VERCEL_ORG_ID is set and matches Vercel dashboard
+        - label: VERCEL_PROJECT_ID is set and matches Vercel dashboard
+        - label: NEXT_PUBLIC_SUPABASE_URL is set
+        - label: NEXT_PUBLIC_SUPABASE_ANON_KEY is set
+        - label: SENTRY_DSN is set (if using Sentry)
+        - label: SENTRY_ORG is set (if using Sentry)
+        - label: SENTRY_PROJECT is set (if using Sentry)
+        - label: SENTRY_AUTH_TOKEN is set (if using Sentry)
+        
+  - type: textarea
+    id: logs
+    attributes:
+      label: Full GitHub Actions Logs
+      description: |
+        Please provide the complete GitHub Actions workflow logs.
+        You can find these by:
+        1. Go to your repository's "Actions" tab
+        2. Click on the failed workflow run
+        3. Expand the failed step
+        4. Copy the complete log output
+      placeholder: Paste the complete workflow logs here...
+      
+  - type: textarea
+    id: vercel-config
+    attributes:
+      label: Vercel Configuration
+      description: |
+        Share your Vercel configuration (remove any sensitive data)
+      placeholder: |
+        From Vercel Dashboard > Project Settings:
+        - Framework: Next.js
+        - Build Command: npm run build
+        - Output Directory: .next
+        - Install Command: npm install
+        
+  - type: dropdown
+    id: branch
+    attributes:
+      label: Branch/Environment
+      description: Which branch/environment is affected?
+      options:
+        - main (production)
+        - develop (staging)  
+        - feature branch (preview)
+        - All branches
+    validations:
+      required: true
+      
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: What steps lead to this issue?
+      placeholder: |
+        1. Push commits to main branch
+        2. GitHub Actions starts CI/CD pipeline
+        3. Deploy Production job fails with credentials error
+        
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What should happen instead?
+      placeholder: Deployment should complete successfully and application should be accessible
+      
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: |
+        Add any other context, screenshots, or information that might help debug the issue.
+        
+        **Have you:**
+        - [ ] Read the [Deployment Setup Guide](../DEPLOYMENT_SETUP.md)?
+        - [ ] Verified all GitHub secrets are correctly set?
+        - [ ] Tested local deployment with Vercel CLI?
+        - [ ] Checked if your Vercel token has expired?

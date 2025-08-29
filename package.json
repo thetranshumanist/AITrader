@@ -11,7 +11,10 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:ci": "jest --ci --coverage --watchAll=false",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "validate-env": "node scripts/validate-env.js",
+    "setup:env": "node scripts/setup-env.js",
+    "setup:check": "npm run validate-env && npm run type-check"
   },
   "dependencies": {
     "@alpacahq/alpaca-trade-api": "^3.1.3",
