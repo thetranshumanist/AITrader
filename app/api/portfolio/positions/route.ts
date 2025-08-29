@@ -3,6 +3,10 @@ import { portfolioManager } from '@/lib/portfolio-manager';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth.api.getSession({

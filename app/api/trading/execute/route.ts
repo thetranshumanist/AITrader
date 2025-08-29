@@ -3,6 +3,10 @@ import { TradeParams } from '@/lib/trading-engine';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function POST(request: NextRequest) {
   try {
     // Get authenticated user

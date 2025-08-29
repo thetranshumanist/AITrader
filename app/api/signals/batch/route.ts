@@ -3,6 +3,10 @@ import { SignalGenerator, TradingSignal } from '@/lib/signals';
 import { TechnicalAnalysis, PriceData } from '@/lib/indicators';
 import { supabaseAdmin } from '@/lib/supabase';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Type definitions
 interface ProcessResult {
   signal: TradingSignal;

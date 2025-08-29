@@ -4,6 +4,10 @@ import { scheduler } from '@/lib/scheduler';
 import { trackBusinessMetric } from '@/lib/monitoring';
 import * as Sentry from '@sentry/nextjs';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 interface HealthCheckResult {
   status: 'healthy' | 'degraded' | 'unhealthy';
   checks: {

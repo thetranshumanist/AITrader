@@ -3,6 +3,10 @@ import { scheduler } from '@/lib/scheduler';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // GET - Get scheduler status
 export async function GET(request: NextRequest) {
   try {
