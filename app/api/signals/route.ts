@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SignalGenerator, TradingSignal } from '@/lib/signals';
 import { TechnicalAnalysis, PriceData } from '@/lib/indicators';
 import { supabaseAdmin } from '@/lib/supabase';
-import { alpacaService } from '@/lib/alpaca';
-import { geminiService } from '@/lib/gemini';
 
 const signalGenerator = new SignalGenerator();
 
@@ -31,6 +29,9 @@ export async function POST(request: NextRequest) {
     let currentPrice = 0;
 
     if (assetType === 'stock') {
+      // Dynamic import to prevent build-time instantiation
+      const { alpacaService } = await import('@/lib/alpaca');
+      
       const endDate = new Date();
       const startDate = new Date(endDate.getTime() - 100 * 24 * 60 * 60 * 1000);
       
@@ -55,6 +56,9 @@ export async function POST(request: NextRequest) {
       const quote = await alpacaService.getLatestQuote(symbol);
       currentPrice = (quote.bidPrice + quote.askPrice) / 2;
     } else if (assetType === 'crypto') {
+      // Dynamic import to prevent build-time instantiation
+      const { geminiService } = await import('@/lib/gemini');
+      
       if (!geminiService.isConfigured()) {
         return NextResponse.json(
           { error: 'Gemini API not configured for crypto signals' },

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TechnicalAnalysis, PriceData } from '@/lib/indicators';
 import { supabaseAdmin } from '@/lib/supabase';
-import { alpacaService } from '@/lib/alpaca';
-import { geminiService } from '@/lib/gemini';
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,6 +18,9 @@ export async function POST(request: NextRequest) {
 
     // Fetch price data based on asset type
     if (assetType === 'stock') {
+      // Dynamic import to prevent build-time instantiation
+      const { alpacaService } = await import('@/lib/alpaca');
+      
       const endDate = new Date();
       const startDate = new Date(endDate.getTime() - (periods || 100) * 24 * 60 * 60 * 1000);
       
@@ -40,6 +41,9 @@ export async function POST(request: NextRequest) {
         volume: bar.volume,
       }));
     } else if (assetType === 'crypto') {
+      // Dynamic import to prevent build-time instantiation
+      const { geminiService } = await import('@/lib/gemini');
+      
       if (!geminiService.isConfigured()) {
         return NextResponse.json(
           { error: 'Gemini API not configured for crypto analysis' },

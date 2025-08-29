@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { alpacaService } from '@/lib/alpaca';
-import { geminiService } from '@/lib/gemini';
 import { supabaseAdmin } from '@/lib/supabase';
 import { scheduler } from '@/lib/scheduler';
 import { trackBusinessMetric } from '@/lib/monitoring';
@@ -93,6 +91,9 @@ export async function GET(request: NextRequest) {
     // Check Alpaca API health
     const alpacaStart = Date.now();
     try {
+      // Dynamic import to prevent build-time instantiation
+      const { alpacaService } = await import('@/lib/alpaca');
+      
       await alpacaService.getAccount();
       const alpacaResponseTime = Date.now() - alpacaStart;
       
@@ -115,6 +116,9 @@ export async function GET(request: NextRequest) {
     // Check Gemini API health
     const geminiStart = Date.now();
     try {
+      // Dynamic import to prevent build-time instantiation
+      const { geminiService } = await import('@/lib/gemini');
+      
       if (geminiService.isConfigured()) {
         await geminiService.getBalances();
         const geminiResponseTime = Date.now() - geminiStart;

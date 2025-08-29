@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SignalGenerator, TradingSignal } from '@/lib/signals';
 import { TechnicalAnalysis, PriceData } from '@/lib/indicators';
 import { supabaseAdmin } from '@/lib/supabase';
-import { alpacaService } from '@/lib/alpaca';
-import { geminiService } from '@/lib/gemini';
 
 // Type definitions
 interface ProcessResult {
@@ -128,6 +126,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Process crypto symbols (only if Gemini is configured)
+    // Dynamic import to prevent build-time instantiation
+    const { geminiService } = await import('@/lib/gemini');
+    
     if (geminiService.isConfigured()) {
       for (const symbol of cryptoSymbols) {
         try {
@@ -223,6 +224,9 @@ async function processSymbol(
   let currentPrice = 0;
 
   if (assetType === 'stock') {
+    // Dynamic import to prevent build-time instantiation
+    const { alpacaService } = await import('@/lib/alpaca');
+    
     const endDate = new Date();
     const startDate = new Date(endDate.getTime() - 100 * 24 * 60 * 60 * 1000);
     
@@ -247,6 +251,9 @@ async function processSymbol(
     const quote = await alpacaService.getLatestQuote(symbol);
     currentPrice = (quote.bidPrice + quote.askPrice) / 2;
   } else if (assetType === 'crypto') {
+    // Dynamic import to prevent build-time instantiation
+    const { geminiService } = await import('@/lib/gemini');
+    
     const candles = await geminiService.getCandles(symbol, '1day');
     
     priceData = candles.map(candle => ({
@@ -372,6 +379,9 @@ export async function GET(request: NextRequest) {
           allTimeSignals.reduce((sum: number, s: any) => sum + s.confidence, 0) / allTimeSignals.length : 0,
       };
     }
+
+    // Dynamic import to check Gemini configuration
+    const { geminiService } = await import('@/lib/gemini');
 
     return NextResponse.json({
       data: {

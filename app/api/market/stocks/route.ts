@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { alpacaService } from '@/lib/alpaca';
 import { supabaseAdmin } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
@@ -13,6 +12,9 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Dynamic import to prevent build-time instantiation
+    const { alpacaService } = await import('@/lib/alpaca');
 
     // Get latest quotes for symbols
     const quotes = await alpacaService.getLatestQuotes(symbols);
@@ -61,6 +63,9 @@ export async function POST(request: NextRequest) {
 
     const startDate = start ? new Date(start) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const endDate = end ? new Date(end) : new Date();
+
+    // Dynamic import to prevent build-time instantiation
+    const { alpacaService } = await import('@/lib/alpaca');
 
     // Get historical bars
     const bars = await alpacaService.getHistoricalBars(

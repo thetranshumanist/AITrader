@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { alpacaService } from '@/lib/alpaca';
 import { supabaseAdmin } from '@/lib/supabase';
 import { auth } from '@/lib/auth';
 
@@ -16,6 +15,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') as 'open' | 'closed' | 'all' | null;
     const limit = parseInt(searchParams.get('limit') || '50');
+
+    // Dynamic import to prevent build-time instantiation
+    const { alpacaService } = await import('@/lib/alpaca');
 
     // Get orders from Alpaca
     const orders = await alpacaService.getOrders({
@@ -48,6 +50,9 @@ export async function POST(request: NextRequest) {
       stopPrice,
       portfolioId
     } = body;
+
+    // Dynamic import to prevent build-time instantiation
+    const { alpacaService } = await import('@/lib/alpaca');
 
     // Validate order parameters
     const validation = alpacaService.validateOrder({
@@ -140,6 +145,9 @@ export async function DELETE(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Dynamic import to prevent build-time instantiation
+    const { alpacaService } = await import('@/lib/alpaca');
 
     // Cancel order with Alpaca
     await alpacaService.cancelOrder(orderId);

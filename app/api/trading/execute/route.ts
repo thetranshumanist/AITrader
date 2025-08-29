@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { tradingEngine, TradeParams } from '@/lib/trading-engine';
+import { TradeParams } from '@/lib/trading-engine';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 
@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Execute the trade
+    const { tradingEngine } = await import('@/lib/trading-engine');
     const result = await tradingEngine.executeTrade(tradeParams);
 
     if (result.success) {
@@ -113,6 +114,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get portfolio metrics
+    const { tradingEngine } = await import('@/lib/trading-engine');
     const metrics = await tradingEngine.getPortfolioMetrics(
       (session.user as any).id,
       portfolioId

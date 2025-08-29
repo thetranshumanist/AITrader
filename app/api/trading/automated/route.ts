@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { tradingEngine } from '@/lib/trading-engine';
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 
@@ -26,6 +25,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Dynamic import to prevent build-time instantiation
+    const { tradingEngine } = await import('@/lib/trading-engine');
 
     // Process automated trading
     const result = await tradingEngine.processAutomatedTrading(
@@ -69,6 +71,9 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Dynamic import to prevent build-time instantiation
+    const { tradingEngine } = await import('@/lib/trading-engine');
 
     // Get recent trading activity summary
     const metrics = await tradingEngine.getPortfolioMetrics(

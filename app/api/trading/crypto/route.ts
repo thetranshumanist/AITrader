@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { geminiService } from '@/lib/gemini';
 import { supabaseAdmin } from '@/lib/supabase';
 import { auth } from '@/lib/auth';
 
@@ -13,6 +12,9 @@ async function requireAuth() {
 export async function GET(request: NextRequest) {
   try {
     const user = await requireAuth();
+
+    // Dynamic import to prevent build-time instantiation
+    const { geminiService } = await import('@/lib/gemini');
 
     if (!geminiService.isConfigured()) {
       return NextResponse.json(
@@ -47,6 +49,9 @@ export async function POST(request: NextRequest) {
       type,
       portfolioId
     } = body;
+
+    // Dynamic import to prevent build-time instantiation
+    const { geminiService } = await import('@/lib/gemini');
 
     if (!geminiService.isConfigured()) {
       return NextResponse.json(
@@ -132,6 +137,9 @@ export async function DELETE(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Dynamic import to prevent build-time instantiation
+    const { geminiService } = await import('@/lib/gemini');
 
     if (!geminiService.isConfigured()) {
       return NextResponse.json(
