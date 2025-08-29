@@ -146,7 +146,7 @@ class TradingEngine {
     try {
       const { geminiService } = await import('./gemini');
       if (!geminiService.isConfigured()) {
-        throw new Error('Gemini API not configured for crypto trading');
+        throw new Error('Crypto trading not configured');
       }
 
       const orderParams = {
@@ -170,6 +170,9 @@ class TradingEngine {
         timestamp: order.timestamp,
       };
     } catch (error: any) {
+      if (error.message.includes('not configured')) {
+        throw new Error('Crypto trading not configured');
+      }
       throw new Error(`Crypto trade execution failed: ${error.message}`);
     }
   }
@@ -197,6 +200,24 @@ class TradingEngine {
 
     if (tradeParams.orderType === 'limit' && !tradeParams.price) {
       errors.push('Price is required for limit orders');
+    }
+
+    // Account validation
+    try {
+      if (tradeParams.assetType === 'stock') {
+        const { alpacaService } = await import('./alpaca');
+        const account = await alpacaService.getAccount();
+        if (!account || account.status !== 'ACTIVE') {
+          errors.push('Account not active');
+        }
+      } else {
+        const { geminiService } = await import('./gemini');
+        if (!geminiService.isConfigured()) {
+          errors.push('Crypto trading not configured');
+        }
+      }
+    } catch (error: any) {
+      errors.push('Failed to validate account status');
     }
 
     // Check account status and buying power

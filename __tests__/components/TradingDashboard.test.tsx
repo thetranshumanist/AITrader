@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import TradingDashboard from '../../components/TradingDashboard';
 
 // Setup jest-dom matchers
@@ -35,14 +35,18 @@ describe('TradingDashboard', () => {
   });
 
   it('should render the dashboard title', async () => {
-    render(<TradingDashboard />);
+    await act(async () => {
+      render(<TradingDashboard />);
+    });
     
     const titleElement = screen.getByText('My Portfolios');
     expect(titleElement).toBeDefined();
   });
 
   it('should show portfolio list initially', async () => {
-    render(<TradingDashboard />);
+    await act(async () => {
+      render(<TradingDashboard />);
+    });
     
     const titleElement = screen.getByText('My Portfolios');
     const subtitleElement = screen.getByText('Manage and monitor your trading portfolios');
@@ -60,7 +64,9 @@ describe('TradingDashboard', () => {
       }),
     } as Response);
 
-    render(<TradingDashboard />);
+    await act(async () => {
+      render(<TradingDashboard />);
+    });
     
     await waitFor(() => {
       const titleElement = screen.getByText('My Portfolios');
@@ -92,8 +98,8 @@ describe('TradingDashboard', () => {
   });
 
   it('should validate portfolio ID input', () => {
-    const isValidPortfolioId = (id: string) => {
-      return id && id.trim().length > 0 && !id.includes(' ');
+    const isValidPortfolioId = (id: string): boolean => {
+      return Boolean(id && id.trim().length > 0 && !id.includes(' '));
     };
 
     expect(isValidPortfolioId('portfolio123')).toBe(true);

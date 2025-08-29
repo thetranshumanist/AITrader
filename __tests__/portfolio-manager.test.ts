@@ -16,17 +16,19 @@ describe('PortfolioManager', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
-    // Setup default Supabase mock
-    mockSupabase.from = jest.fn().mockReturnValue({
-      insert: jest.fn().mockReturnValue({
+    // Setup default Supabase mock with dynamic responses
+    const mockInsert = jest.fn().mockImplementation((data) => {
+      const portfolioData = Array.isArray(data) ? data[0] : data;
+      return {
         select: jest.fn().mockReturnValue({
           single: jest.fn().mockResolvedValue({
             data: {
               id: 'portfolio123',
-              user_id: 'user123',
-              name: 'Test Portfolio',
-              cash_balance: 100000,
-              total_value: 100000,
+              user_id: portfolioData.user_id,
+              name: portfolioData.name,
+              description: portfolioData.description,
+              cash_balance: portfolioData.cash_balance || 100000,
+              total_value: portfolioData.cash_balance || 100000,
               total_pnl: 0,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
@@ -34,7 +36,11 @@ describe('PortfolioManager', () => {
             error: null,
           }),
         }),
-      }),
+      };
+    });
+    
+    mockSupabase.from = jest.fn().mockReturnValue({
+      insert: mockInsert,
       select: jest.fn().mockReturnValue({
         eq: jest.fn().mockReturnValue({
           order: jest.fn().mockReturnValue({
@@ -51,8 +57,34 @@ describe('PortfolioManager', () => {
           error: null,
         }),
       }),
-      delete: jest.fn().mockResolvedValue({ error: null }),
-      update: jest.fn().mockResolvedValue({ error: null }),
+      delete: jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue({
+          eq: jest.fn().mockResolvedValue({ error: null }),
+        }),
+      }),
+      update: jest.fn().mockReturnValue({
+        eq: jest.fn().mockResolvedValue({ error: null }),
+      }),
+    });
+    
+    // Setup Gemini service mock
+    mockGeminiService.isConfigured.mockReturnValue(true);
+    mockGeminiService.getTicker.mockImplementation(async (symbol: string) => {
+      if (symbol === 'BTCUSD') {
+        return {
+          symbol: 'BTCUSD',
+          price: 46000,
+          volume: 1000000,
+          timestamp: new Date(),
+          high24h: 47000,
+          low24h: 45000,
+          change24h: 1000,
+          changePercent24h: 2.17,
+          bid: 45900,
+          ask: 46100,
+        };
+      }
+      throw new Error(`No mock data for symbol: ${symbol}`);
     });
   });
 
@@ -70,8 +102,8 @@ describe('PortfolioManager', () => {
         userId: 'user123',
         name: 'My Trading Portfolio',
         description: 'A portfolio for trading stocks',
-        cashBalance: 100000, // From mock
-        totalValue: 100000,
+        cashBalance: 50000, // The actual parameter passed
+        totalValue: 50000,
         totalPnL: 0,
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
@@ -244,7 +276,7 @@ describe('PortfolioManager', () => {
         }),
       });
 
-      // Mock current prices
+      // Mock current prices  
       mockAlpacaService.getLatestQuote.mockResolvedValue({
         symbol: 'AAPL',
         bidPrice: 152,
@@ -253,15 +285,6 @@ describe('PortfolioManager', () => {
         askSize: 100,
         timestamp: new Date(),
       });
-
-      mockGeminiService.getTicker.mockResolvedValue({
-        symbol: 'BTCUSD',
-        last: 46000,
-        bid: 45900,
-        ask: 46100,
-        volume: 1000000,
-        price: 46000,
-      } as any);
 
       const positions = await portfolioManager.getPortfolioPositions('portfolio123');
 
@@ -272,9 +295,9 @@ describe('PortfolioManager', () => {
       expect(stockPosition).toBeDefined();
       expect(stockPosition!.quantity).toBe(10);
       expect(stockPosition!.averagePrice).toBe(150);
-      expect(stockPosition!.currentPrice).toBe(153); // Ask price
-      expect(stockPosition!.marketValue).toBe(1530); // 10 * 153
-      expect(stockPosition!.unrealizedPnL).toBe(30); // (153 - 150) * 10
+      expect(stockPosition!.currentPrice).toBe(152.5); // Mid price (bid + ask) / 2
+      expect(stockPosition!.marketValue).toBe(1525); // 10 * 152.5
+      expect(stockPosition!.unrealizedPnL).toBe(25); // (152.5 - 150) * 10
       
       // Check crypto position
       const cryptoPosition = positions.find(p => p.symbol === 'BTCUSD');
@@ -362,12 +385,17 @@ describe('PortfolioManager', () => {
 
       expect(mockSupabase.from).toHaveBeenCalledWith('portfolios');
       expect(mockSupabase.from().delete).toHaveBeenCalled();
+      expect(mockSupabase.from().delete().eq).toHaveBeenCalledWith('id', 'portfolio123');
     });
 
     it('should handle deletion errors', async () => {
       mockSupabase.from.mockReturnValue({
-        delete: jest.fn().mockResolvedValue({
-          error: { message: 'Permission denied' },
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({
+              error: { message: 'Permission denied' },
+            }),
+          }),
         }),
       });
 

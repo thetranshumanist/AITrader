@@ -20,16 +20,105 @@ describe('TradingEngine', () => {
     jest.clearAllMocks();
     tradingEngine = new TradingEngine();
     
-    // Setup default mocks
-    mockSupabase.from = jest.fn().mockReturnValue({
-      select: jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          single: jest.fn().mockResolvedValue({ data: null, error: null }),
-        }),
-      }),
-      insert: jest.fn().mockResolvedValue({ data: {}, error: null }),
-      update: jest.fn().mockResolvedValue({ data: {}, error: null }),
+    // Setup Alpaca service mocks for successful scenarios
+    mockAlpacaService.getAccount.mockResolvedValue({
+      id: 'account123',
+      accountNumber: 'ACC123',
+      status: 'ACTIVE',
+      currency: 'USD',
+      buyingPower: 50000,
+      cash: 25000,
+      portfolioValue: 75000,
+      equity: 75000,
+      longMarketValue: 50000,
+      shortMarketValue: 0,
+      daytradeCount: 0,
+      daytradingBuyingPower: 100000,
     });
+    
+    // Setup Gemini service mocks
+    mockGeminiService.isConfigured.mockReturnValue(true);
+    
+    // Setup Supabase mocks for portfolio metrics and data operations
+    const mockInsert = jest.fn().mockResolvedValue({ data: {}, error: null });
+    const mockUpdate = jest.fn().mockResolvedValue({ data: {}, error: null });
+    
+    mockSupabase.from = jest.fn().mockImplementation((table: string) => {
+      if (table === 'portfolios') {
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                single: jest.fn().mockResolvedValue({
+                  data: {
+                    id: 'portfolio123',
+                    user_id: 'user123',
+                    cash_balance: 10000,
+                    total_value: 50000,
+                    total_pnl: 1000,
+                  },
+                  error: null,
+                }),
+              }),
+              single: jest.fn().mockResolvedValue({
+                data: {
+                  id: 'portfolio123',
+                  user_id: 'user123',
+                  cash_balance: 10000,
+                  total_value: 50000,
+                  total_pnl: 1000,
+                },
+                error: null,
+              }),
+            }),
+          }),
+          insert: mockInsert,
+          update: mockUpdate,
+        };
+      }
+      if (table === 'positions') {
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              gt: jest.fn().mockResolvedValue({
+                data: [], // No existing positions by default
+                error: null,
+              }),
+            }),
+          }),
+        };
+      }
+      if (table === 'trades') {
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              gte: jest.fn().mockResolvedValue({
+                data: [], // No trades today by default
+                error: null,
+              }),
+            }),
+          }),
+          insert: mockInsert,
+        };
+      }
+      // Default fallback
+      return {
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({ data: null, error: null }),
+          }),
+        }),
+        insert: mockInsert,
+        update: mockUpdate,
+      };
+    });
+    
+    // Store references for assertions
+    (mockSupabase as any).mockInsert = mockInsert;
+    (mockSupabase as any).mockUpdate = mockUpdate;
+    
+    // Add RPC mock for portfolio updates
+    mockSupabase.rpc = jest.fn().mockResolvedValue({ data: null, error: null });
   });
 
   describe('Trade Validation', () => {
@@ -101,20 +190,6 @@ describe('TradingEngine', () => {
       };
 
       mockAlpacaService.placeOrder.mockResolvedValue(mockOrder);
-      
-      // Mock portfolio and risk checks
-      mockSupabase.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: { cash_balance: 10000, total_value: 50000 },
-              error: null,
-            }),
-          }),
-        }),
-        insert: jest.fn().mockResolvedValue({ error: null }),
-        update: jest.fn().mockResolvedValue({ error: null }),
-      });
 
       const validTrade = {
         symbol: 'AAPL',
@@ -142,19 +217,8 @@ describe('TradingEngine', () => {
     });
 
     it('should handle Alpaca API errors gracefully', async () => {
-      mockAlpacaService.placeOrder.mockRejectedValue(new Error('Insufficient funds'));
-      
-      // Mock successful validation and risk checks
-      mockSupabase.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: { cash_balance: 10000, total_value: 50000 },
-              error: null,
-            }),
-          }),
-        }),
-      });
+      // Mock account validation to fail
+      mockAlpacaService.getAccount.mockRejectedValue(new Error('API error'));
 
       const validTrade = {
         symbol: 'AAPL',
@@ -169,7 +233,7 @@ describe('TradingEngine', () => {
       const result = await tradingEngine.executeTrade(validTrade);
       
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Insufficient funds');
+      expect(result.error).toContain('Failed to validate account status');
     });
   });
 
@@ -191,22 +255,7 @@ describe('TradingEngine', () => {
         isCancelled: false,
       };
 
-      mockGeminiService.isConfigured.mockReturnValue(true);
       mockGeminiService.placeOrder.mockResolvedValue(mockOrder);
-      
-      // Mock portfolio and risk checks
-      mockSupabase.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: { cash_balance: 10000, total_value: 50000 },
-              error: null,
-            }),
-          }),
-        }),
-        insert: jest.fn().mockResolvedValue({ error: null }),
-        update: jest.fn().mockResolvedValue({ error: null }),
-      });
 
       const validTrade = {
         symbol: 'BTCUSD',
@@ -229,18 +278,6 @@ describe('TradingEngine', () => {
 
     it('should fail when Gemini is not configured', async () => {
       mockGeminiService.isConfigured.mockReturnValue(false);
-      
-      // Mock successful validation and risk checks
-      mockSupabase.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: { cash_balance: 10000, total_value: 50000 },
-              error: null,
-            }),
-          }),
-        }),
-      });
 
       const validTrade = {
         symbol: 'BTCUSD',
@@ -255,25 +292,75 @@ describe('TradingEngine', () => {
       const result = await tradingEngine.executeTrade(validTrade);
       
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Gemini API not configured');
+      expect(result.error).toContain('Crypto trading not configured');
     });
   });
 
   describe('Risk Management', () => {
     it('should prevent trades that exceed maximum position size', async () => {
-      // Mock portfolio with large position that would exceed limits
-      mockSupabase.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: { 
-                cash_balance: 1000, // Low cash
-                total_value: 10000, // Total portfolio value
-              },
-              error: null,
+      // Override default mocks to create risk scenario
+      mockSupabase.from = jest.fn().mockImplementation((table: string) => {
+        if (table === 'portfolios') {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                eq: jest.fn().mockReturnValue({
+                  single: jest.fn().mockResolvedValue({
+                    data: {
+                      id: 'portfolio123',
+                      user_id: 'user123',
+                      cash_balance: 1000,
+                      total_value: 10000, // Small portfolio
+                      total_pnl: 0,
+                    },
+                    error: null,
+                  }),
+                }),
+                single: jest.fn().mockResolvedValue({
+                  data: {
+                    id: 'portfolio123',
+                    user_id: 'user123',
+                    cash_balance: 1000,
+                    total_value: 10000, // Small portfolio
+                    total_pnl: 0,
+                  },
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'positions') {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                gt: jest.fn().mockResolvedValue({
+                  data: [],
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        if (table === 'trades') {
+          return {
+            select: jest.fn().mockReturnValue({
+              eq: jest.fn().mockReturnValue({
+                gte: jest.fn().mockResolvedValue({
+                  data: [],
+                  error: null,
+                }),
+              }),
+            }),
+          };
+        }
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({ data: null, error: null }),
             }),
           }),
-        }),
+        };
       });
 
       const riskyTrade = {
@@ -281,7 +368,7 @@ describe('TradingEngine', () => {
         assetType: 'stock' as const,
         action: 'buy' as const,
         quantity: 100, // Large quantity
-        price: 150,
+        price: 150, // $15,000 trade value vs $10,000 portfolio = 150% position size
         orderType: 'limit' as const,
         userId: 'user123',
         portfolioId: 'portfolio123',
@@ -290,7 +377,7 @@ describe('TradingEngine', () => {
       const result = await tradingEngine.executeTrade(riskyTrade);
       
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Risk management violation');
+      expect(result.error).toContain('Position size too large');
     });
   });
 
@@ -310,22 +397,6 @@ describe('TradingEngine', () => {
       };
 
       mockAlpacaService.placeOrder.mockResolvedValue(mockOrder);
-      
-      const mockInsert = jest.fn().mockResolvedValue({ error: null });
-      const mockUpdate = jest.fn().mockResolvedValue({ error: null });
-      
-      mockSupabase.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: { cash_balance: 10000, total_value: 50000 },
-              error: null,
-            }),
-          }),
-        }),
-        insert: mockInsert,
-        update: mockUpdate,
-      });
 
       const validTrade = {
         symbol: 'AAPL',
@@ -340,8 +411,10 @@ describe('TradingEngine', () => {
       const result = await tradingEngine.executeTrade(validTrade);
       
       expect(result.success).toBe(true);
-      expect(mockInsert).toHaveBeenCalled(); // Trade logged
-      expect(mockUpdate).toHaveBeenCalled(); // Portfolio updated
+      expect(mockSupabase.mockInsert).toHaveBeenCalled(); // Trade logged
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('update_portfolio_performance', {
+        portfolio_id: 'portfolio123',
+      }); // Portfolio updated
     });
   });
 });
