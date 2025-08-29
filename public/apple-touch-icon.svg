@@ -1,0 +1,31 @@
+<svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="appleIconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle with some padding for iOS -->
+  <circle cx="90" cy="90" r="75" fill="url(#appleIconGradient)" />
+  
+  <!-- Trading chart lines -->
+  <path d="M45 110 L65 85 L85 95 L105 65 L125 75" 
+        stroke="white" 
+        stroke-width="8" 
+        fill="none" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  
+  <!-- Chart points -->
+  <circle cx="65" cy="85" r="6" fill="white" />
+  <circle cx="85" cy="95" r="6" fill="white" />
+  <circle cx="105" cy="65" r="6" fill="white" />
+  
+  <!-- Trending up arrow -->
+  <path d="M105 65 L98 72 M105 65 L98 65 M105 65 L105 72" 
+        stroke="white" 
+        stroke-width="6" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+</svg>

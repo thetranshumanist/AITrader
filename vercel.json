@@ -1,0 +1,155 @@
+{
+  "version": 2,
+  "regions": ["iad1", "sfo1"],
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "@aitrader-supabase-url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@aitrader-supabase-anon-key",
+    "SUPABASE_SERVICE_ROLE_KEY": "@aitrader-supabase-service-role-key",
+    "BETTER_AUTH_SECRET": "@aitrader-better-auth-secret",
+    "BETTER_AUTH_URL": "@aitrader-better-auth-url",
+    "DATABASE_URL": "@aitrader-database-url",
+    "ALPACA_API_KEY": "@aitrader-alpaca-api-key",
+    "ALPACA_SECRET_KEY": "@aitrader-alpaca-secret-key",
+    "ALPACA_BASE_URL": "@aitrader-alpaca-base-url",
+    "GEMINI_API_KEY": "@aitrader-gemini-api-key",
+    "GEMINI_SECRET_KEY": "@aitrader-gemini-secret-key",
+    "GOOGLE_SHEETS_PRIVATE_KEY": "@aitrader-google-sheets-private-key",
+    "GOOGLE_SHEETS_CLIENT_EMAIL": "@aitrader-google-sheets-client-email",
+    "GOOGLE_SHEETS_SPREADSHEET_ID": "@aitrader-google-sheets-spreadsheet-id",
+    "SENTRY_DSN": "@aitrader-sentry-dsn",
+    "NEXT_PUBLIC_SENTRY_DSN": "@aitrader-sentry-dsn",
+    "SENTRY_ORG": "@aitrader-sentry-org",
+    "SENTRY_PROJECT": "@aitrader-sentry-project",
+    "SENTRY_AUTH_TOKEN": "@aitrader-sentry-auth-token",
+    "ENABLE_SCHEDULER": "true",
+    "CRON_SECRET": "@aitrader-cron-secret",
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "app/api/trading/**/*.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "app/api/market/**/*.ts": {
+      "maxDuration": 45,
+      "memory": 512
+    },
+    "app/api/signals/**/*.ts": {
+      "maxDuration": 45,
+      "memory": 1024
+    },
+    "app/api/portfolio/**/*.ts": {
+      "maxDuration": 30,
+      "memory": 512
+    },
+    "app/api/admin/**/*.ts": {
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "app/api/analysis/**/*.ts": {
+      "maxDuration": 45,
+      "memory": 1024
+    },
+    "app/api/auth/**/*.ts": {
+      "maxDuration": 15,
+      "memory": 256
+    },
+    "app/api/health/**/*.ts": {
+      "maxDuration": 10,
+      "memory": 256
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://aitrader.vercel.app"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization, x-client-info"
+        },
+        {
+          "key": "Access-Control-Max-Age",
+          "value": "86400"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/login",
+      "destination": "/sign-in",
+      "permanent": true
+    },
+    {
+      "source": "/register",
+      "destination": "/sign-up",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/monitoring/(.*)",
+      "destination": "/api/health"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/daily-workflow",
+      "schedule": "0 6 * * 1-5"
+    },
+    {
+      "path": "/api/cron/market-data-sync",
+      "schedule": "*/15 9-16 * * 1-5"
+    },
+    {
+      "path": "/api/cron/portfolio-rebalancing",
+      "schedule": "0 16 * * 5"
+    },
+    {
+      "path": "/api/cron/health-check",
+      "schedule": "0 */6 * * *"
+    }
+  ]
+}
