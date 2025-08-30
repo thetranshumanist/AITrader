@@ -80,10 +80,6 @@ jobs:
           
           [ -z "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" ] && MISSING_SECRETS+=("NEXT_PUBLIC_SUPABASE_URL")
           [ -z "${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" ] && MISSING_SECRETS+=("NEXT_PUBLIC_SUPABASE_ANON_KEY")
-          [ -z "${{ secrets.SENTRY_DSN }}" ] && MISSING_SECRETS+=("SENTRY_DSN")
-          [ -z "${{ secrets.SENTRY_ORG }}" ] && MISSING_SECRETS+=("SENTRY_ORG")
-          [ -z "${{ secrets.SENTRY_PROJECT }}" ] && MISSING_SECRETS+=("SENTRY_PROJECT")
-          [ -z "${{ secrets.SENTRY_AUTH_TOKEN }}" ] && MISSING_SECRETS+=("SENTRY_AUTH_TOKEN")
           
           if [ ${#MISSING_SECRETS[@]} -ne 0 ]; then
             echo "❌ Missing required secrets:"
@@ -102,11 +98,6 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -261,18 +252,6 @@ jobs:
           draft: false
           prerelease: false
           
-      - name: Notify Sentry of deployment
-        if: success()
-        run: |
-          curl -X POST \"https://sentry.io/api/0/organizations/${{ secrets.SENTRY_ORG }}/releases/\" \\n            -H \"Authorization: Bearer ${{ secrets.SENTRY_AUTH_TOKEN }}\" \\n            -H \"Content-Type: application/json\" \\n            -d '{
-              \"version\": \"${{ github.sha }}\",
-              \"projects\": [\"${{ secrets.SENTRY_PROJECT }}\"],
-              \"refs\": [{
-                \"repository\": \"${{ github.repository }}\",
-                \"commit\": \"${{ github.sha }}\"
-              }]
-            }'
-            
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest

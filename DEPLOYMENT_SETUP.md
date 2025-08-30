@@ -71,10 +71,6 @@ GEMINI_SECRET_KEY=your_gemini_secret_key
 GOOGLE_SHEETS_PRIVATE_KEY=your_google_sheets_private_key
 GOOGLE_SHEETS_CLIENT_EMAIL=your_google_sheets_client_email
 GOOGLE_SHEETS_SPREADSHEET_ID=your_spreadsheet_id
-SENTRY_DSN=your_sentry_dsn
-SENTRY_ORG=your_sentry_org_name
-SENTRY_PROJECT=your_sentry_project_name
-SENTRY_AUTH_TOKEN=your_sentry_auth_token
 CRON_SECRET=your_cron_secret_key
 ```
 
@@ -103,12 +99,6 @@ CRON_SECRET=your_cron_secret_key
 1. Sign up at [Gemini](https://www.gemini.com/)
 2. Go to **API Settings**
 3. Create new API key with appropriate permissions
-
-#### Sentry Configuration (Optional)
-1. Sign up at [Sentry](https://sentry.io/)
-2. Create a new project
-3. Get DSN from project settings
-4. Create auth token with appropriate permissions
 
 ## 3. Vercel Environment Variables
 

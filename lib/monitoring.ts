@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/nextjs';
+// Simple monitoring implementation without Sentry
 
 // Trading operation monitoring
 export const monitorTradeExecution = async <T>(
@@ -10,43 +10,18 @@ export const monitorTradeExecution = async <T>(
     userId?: string;
   }
 ): Promise<T> => {
-  return await Sentry.startSpan(
-    {
-      op: 'trade.execution',
-      name: `Trade Execution: ${context.action || 'unknown'} ${context.symbol || ''}`,
-      attributes: {
-        portfolioId: context.portfolioId,
-        symbol: context.symbol || '',
-        action: context.action || '',
-      },
-    },
-    async (span) => {
-      try {
-        const result = await operation();
-        
-        span.setAttribute('status', 'success');
-        span.setAttribute('timestamp', new Date().toISOString());
-        
-        return result;
-      } catch (error) {
-        span.setAttribute('status', 'error');
-        span.setAttribute('error.message', error instanceof Error ? error.message : 'Unknown error');
-        span.setAttribute('timestamp', new Date().toISOString());
-        
-        Sentry.captureException(error, {
-          tags: {
-            operation: 'trade_execution',
-            portfolioId: context.portfolioId,
-            symbol: context.symbol,
-            action: context.action,
-          },
-          user: context.userId ? { id: context.userId } : undefined,
-        });
-        
-        throw error;
-      }
-    }
-  );
+  try {
+    const startTime = Date.now();
+    const result = await operation();
+    const duration = Date.now() - startTime;
+    
+    console.log(`Trade Execution: ${context.action || 'unknown'} ${context.symbol || ''} completed in ${duration}ms`);
+    
+    return result;
+  } catch (error) {
+    console.error(`Trade Execution failed for portfolio ${context.portfolioId}`, error);
+    throw error;
+  }
 };
 
 // Portfolio analysis monitoring
@@ -58,40 +33,18 @@ export const monitorPortfolioAnalysis = async <T>(
     userId?: string;
   }
 ): Promise<T> => {
-  return await Sentry.startSpan(
-    {
-      op: 'portfolio.analysis',
-      name: `Portfolio Analysis: ${context.analysisType}`,
-      attributes: {
-        portfolioId: context.portfolioId,
-        analysisType: context.analysisType,
-      },
-    },
-    async (span) => {
-      try {
-        const result = await operation();
-        
-        span.setAttribute('status', 'success');
-        span.setAttribute('analysis_type', context.analysisType);
-        span.setAttribute('timestamp', new Date().toISOString());
-        
-        return result;
-      } catch (error) {
-        span.setAttribute('status', 'error');
-        
-        Sentry.captureException(error, {
-          tags: {
-            operation: 'portfolio_analysis',
-            portfolioId: context.portfolioId,
-            analysisType: context.analysisType,
-          },
-          user: context.userId ? { id: context.userId } : undefined,
-        });
-        
-        throw error;
-      }
-    }
-  );
+  try {
+    const startTime = Date.now();
+    const result = await operation();
+    const duration = Date.now() - startTime;
+    
+    console.log(`Portfolio Analysis: ${context.analysisType} completed in ${duration}ms for portfolio ${context.portfolioId}`);
+    
+    return result;
+  } catch (error) {
+    console.error(`Portfolio Analysis failed for portfolio ${context.portfolioId}`, error);
+    throw error;
+  }
 };
 
 // Market data monitoring
@@ -103,64 +56,29 @@ export const monitorMarketDataSync = async <T>(
     dataType?: string;
   }
 ): Promise<T> => {
-  return await Sentry.startSpan(
-    {
-      op: 'market.data.sync',
-      name: `Market Data Sync: ${context.source}`,
-      attributes: {
-        source: context.source,
-        dataType: context.dataType || '',
-      },
-    },
-    async (span) => {
-      const startTime = Date.now();
-      
-      try {
-        const result = await operation();
-        
-        const duration = Date.now() - startTime;
-        
-        span.setAttribute('status', 'success');
-        span.setAttribute('source', context.source);
-        span.setAttribute('symbolCount', context.symbolCount || 0);
-        span.setAttribute('duration', duration);
-        span.setAttribute('timestamp', new Date().toISOString());
-        
-        // Log performance metrics
-        Sentry.metrics.increment('market_data.sync.success', 1, {
-          tags: {
-            source: context.source,
-          },
-        });
-        
-        Sentry.metrics.distribution('market_data.sync.duration', duration, {
-          tags: {
-            source: context.source,
-          },
-        });
-        
-        return result;
-      } catch (error) {
-        span.setAttribute('status', 'error');
-        
-        Sentry.metrics.increment('market_data.sync.error', 1, {
-          tags: {
-            source: context.source,
-          },
-        });
-        
-        Sentry.captureException(error, {
-          tags: {
-            operation: 'market_data_sync',
-            source: context.source,
-            dataType: context.dataType,
-          },
-        });
-        
-        throw error;
-      }
-    }
-  );
+  try {
+    const startTime = Date.now();
+    const result = await operation();
+    const duration = Date.now() - startTime;
+    
+    console.log(`Market Data Sync: ${context.source} completed in ${duration}ms`);
+    
+    // Log performance metrics
+    console.log(`Market data sync success: ${context.source}`, {
+      symbolCount: context.symbolCount || 0,
+      duration,
+      dataType: context.dataType || ''
+    });
+    
+    return result;
+  } catch (error) {
+    console.error(`Market Data Sync failed for source ${context.source}`, error);
+    
+    // Log error
+    console.error(`Market data sync error: ${context.source}`, error);
+    
+    throw error;
+  }
 };
 
 // API call monitoring
@@ -172,75 +90,37 @@ export const monitorAPICall = async <T>(
     method: string;
   }
 ): Promise<T> => {
-  return await Sentry.startSpan(
-    {
-      op: 'api.call',
-      name: `API Call: ${context.service} ${context.method} ${context.endpoint}`,
-      attributes: {
-        service: context.service,
-        endpoint: context.endpoint,
-        method: context.method,
-      },
-    },
-    async (span) => {
-      const startTime = Date.now();
-      
-      try {
-        const result = await operation();
-        
-        const duration = Date.now() - startTime;
-        
-        span.setAttribute('status', 'success');
-        span.setAttribute('service', context.service);
-        span.setAttribute('endpoint', context.endpoint);
-        span.setAttribute('duration', duration);
-        span.setAttribute('timestamp', new Date().toISOString());
-        
-        // Track API performance
-        Sentry.metrics.increment('api.call.success', 1, {
-          tags: {
-            service: context.service,
-          },
-        });
-        
-        Sentry.metrics.distribution('api.call.duration', duration, {
-          tags: {
-            service: context.service,
-            endpoint: context.endpoint,
-          },
-        });
-        
-        return result;
-      } catch (error) {
-        const duration = Date.now() - startTime;
-        
-        span.setAttribute('status', 'error');
-        span.setAttribute('service', context.service);
-        span.setAttribute('endpoint', context.endpoint);
-        span.setAttribute('duration', duration);
-        span.setAttribute('error.message', error instanceof Error ? error.message : 'Unknown error');
-        
-        // Track API errors
-        Sentry.metrics.increment('api.call.error', 1, {
-          tags: {
-            service: context.service,
-            endpoint: context.endpoint,
-          },
-        });
-        
-        Sentry.captureException(error, {
-          tags: {
-            operation: 'api_call',
-            service: context.service,
-            endpoint: context.endpoint,
-            method: context.method,
-          },
-        });
-        
-        throw error;
-      }
-    }
-  );
+  try {
+    const startTime = Date.now();
+    const result = await operation();
+    const duration = Date.now() - startTime;
+    
+    console.log(`API Call: ${context.service} ${context.method} ${context.endpoint} completed in ${duration}ms`);
+    
+    // Track API performance
+    console.log(`API call success: ${context.service}`, {
+      endpoint: context.endpoint,
+      method: context.method,
+      duration
+    });
+    
+    return result;
+  } catch (error) {
+    const startTime = Date.now();
+    const duration = Date.now() - startTime;
+    
+    console.error(`API Call failed: ${context.service} ${context.method} ${context.endpoint}`, error);
+    
+    // Track API errors
+    console.error(`API call error: ${context.service}`, {
+      endpoint: context.endpoint,
+      method: context.method,
+      duration,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+    
+    throw error;
+  }
 };
 
 // Scheduler job monitoring
@@ -251,66 +131,34 @@ export const monitorSchedulerJob = async <T>(
     jobType: string;
   }
 ): Promise<T> => {
-  return await Sentry.startSpan(
-    {
-      op: 'scheduler.job',
-      name: `Scheduler Job: ${context.jobName}`,
-      attributes: {
-        jobName: context.jobName,
-        jobType: context.jobType,
-      },
-    },
-    async (span) => {
-      const startTime = Date.now();
-      
-      try {
-        const result = await operation();
-        
-        const duration = Date.now() - startTime;
-        
-        span.setAttribute('status', 'success');
-        span.setAttribute('jobName', context.jobName);
-        span.setAttribute('duration', duration);
-        span.setAttribute('timestamp', new Date().toISOString());
-        
-        // Track job performance
-        Sentry.metrics.increment('scheduler.job.success', 1, {
-          tags: {
-            jobName: context.jobName,
-          },
-        });
-        
-        Sentry.metrics.distribution('scheduler.job.duration', duration, {
-          tags: {
-            jobName: context.jobName,
-          },
-        });
-        
-        return result;
-      } catch (error) {
-        const duration = Date.now() - startTime;
-        
-        span.setAttribute('status', 'error');
-        
-        // Track job errors
-        Sentry.metrics.increment('scheduler.job.error', 1, {
-          tags: {
-            jobName: context.jobName,
-          },
-        });
-        
-        Sentry.captureException(error, {
-          tags: {
-            operation: 'scheduler_job',
-            jobName: context.jobName,
-            jobType: context.jobType,
-          },
-        });
-        
-        throw error;
-      }
-    }
-  );
+  try {
+    const startTime = Date.now();
+    const result = await operation();
+    const duration = Date.now() - startTime;
+    
+    console.log(`Scheduler Job: ${context.jobName} completed in ${duration}ms`);
+    
+    // Track job performance
+    console.log(`Scheduler job success: ${context.jobName}`, {
+      jobType: context.jobType,
+      duration
+    });
+    
+    return result;
+  } catch (error) {
+    const startTime = Date.now();
+    const duration = Date.now() - startTime;
+    
+    console.error(`Scheduler Job failed: ${context.jobName}`, error);
+    
+    // Track job errors
+    console.error(`Scheduler job error: ${context.jobName}`, {
+      jobType: context.jobType,
+      duration
+    });
+    
+    throw error;
+  }
 };
 
 // Custom metric helpers
@@ -319,12 +167,7 @@ export const trackBusinessMetric = (
   value: number,
   tags?: Record<string, string>
 ) => {
-  Sentry.metrics.gauge(metricName, value, {
-    tags: {
-      component: 'ai-trader',
-      ...tags,
-    },
-  });
+  console.log(`Business Metric: ${metricName} = ${value}`, tags || {});
 };
 
 export const trackUserAction = (
@@ -332,16 +175,10 @@ export const trackUserAction = (
   userId?: string,
   additionalData?: Record<string, any>
 ) => {
-  Sentry.addBreadcrumb({
-    category: 'user.action',
-    message: action,
-    level: 'info',
-    data: additionalData,
+  console.log(`User Action: ${action}`, {
+    userId,
+    ...additionalData
   });
-  
-  if (userId) {
-    Sentry.setUser({ id: userId });
-  }
 };
 
 // Error reporting helpers
@@ -355,115 +192,95 @@ export const reportCriticalError = (
     additionalData?: Record<string, any>;
   }
 ) => {
-  Sentry.withScope((scope) => {
-    scope.setTag('severity', 'critical');
-    scope.setTag('component', context.component);
-    scope.setTag('operation', context.operation);
-    
-    if (context.userId) {
-      scope.setUser({ id: context.userId });
-    }
-    
-    if (context.portfolioId) {
-      scope.setTag('portfolioId', context.portfolioId);
-    }
-    
-    if (context.additionalData) {
-      scope.setContext('additional_data', context.additionalData);
-    }
-    
-    Sentry.captureException(error);
+  console.error(`Critical Error in ${context.component}/${context.operation}:`, {
+    error: error.message,
+    userId: context.userId,
+    portfolioId: context.portfolioId,
+    ...context.additionalData
   });
 };
 
 // System health monitoring
 export const monitorSystemHealth = async () => {
-  return await Sentry.startSpan(
-    {
-      op: 'system.health.check',
-      name: 'System Health Check',
+  const healthStatus = {
+    timestamp: new Date().toISOString(),
+    database: 'unknown' as 'healthy' | 'unhealthy' | 'unknown',
+    apis: {
+      alpaca: 'unknown' as 'healthy' | 'unhealthy' | 'unknown',
+      gemini: 'unknown' as 'healthy' | 'unhealthy' | 'unknown',
     },
-    async (span) => {
-      const healthStatus = {
-        timestamp: new Date().toISOString(),
-        database: 'unknown' as 'healthy' | 'unhealthy' | 'unknown',
-        apis: {
-          alpaca: 'unknown' as 'healthy' | 'unhealthy' | 'unknown',
-          gemini: 'unknown' as 'healthy' | 'unhealthy' | 'unknown',
-        },
-        scheduler: 'healthy' as 'healthy' | 'unhealthy',
-        overall: 'unknown' as 'healthy' | 'unhealthy' | 'degraded',
-      };
-      
-      try {
-        // Check database connection
-        const { supabase } = await import('./supabase');
-        if (supabase) {
-          const { error } = await supabase.from('portfolios').select('count', { count: 'exact' });
-          healthStatus.database = error ? 'unhealthy' : 'healthy';
-        } else {
-          healthStatus.database = 'unhealthy';
-        }
-        
-        // Check API connections (basic connectivity)
-        try {
-          const { alpacaService } = await import('./alpaca');
-          await alpacaService.getAccount();
-          healthStatus.apis.alpaca = 'healthy';
-        } catch (error) {
-          healthStatus.apis.alpaca = 'unhealthy';
-        }
-        
-        try {
-          const { geminiService } = await import('./gemini');
-          if (geminiService.isConfigured()) {
-            await geminiService.getBalances();
-            healthStatus.apis.gemini = 'healthy';
-          }
-        } catch (error) {
-          healthStatus.apis.gemini = 'unhealthy';
-        }
-        
-        // Determine overall health
-        const unhealthyComponents = [
-          healthStatus.database === 'unhealthy',
-          healthStatus.apis.alpaca === 'unhealthy',
-          healthStatus.apis.gemini === 'unhealthy',
-        ].filter(Boolean).length;
-        
-        if (unhealthyComponents === 0) {
-          healthStatus.overall = 'healthy';
-        } else if (unhealthyComponents >= 2) {
-          healthStatus.overall = 'unhealthy';
-        } else {
-          healthStatus.overall = 'degraded';
-        }
-        
-        span.setAttribute('status', 'success');
-        span.setAttribute('health.database', healthStatus.database);
-        span.setAttribute('health.alpaca', healthStatus.apis.alpaca);
-        span.setAttribute('health.gemini', healthStatus.apis.gemini);
-        span.setAttribute('health.overall', healthStatus.overall);
-        
-        // Track health metrics
-        Sentry.metrics.gauge('system.health.overall', healthStatus.overall === 'healthy' ? 1 : 0);
-        Sentry.metrics.gauge('system.health.database', healthStatus.database === 'healthy' ? 1 : 0);
-        Sentry.metrics.gauge('system.health.alpaca', healthStatus.apis.alpaca === 'healthy' ? 1 : 0);
-        Sentry.metrics.gauge('system.health.gemini', healthStatus.apis.gemini === 'healthy' ? 1 : 0);
-        
-        return healthStatus;
-      } catch (error) {
-        span.setAttribute('status', 'error');
-        
-        Sentry.captureException(error, {
-          tags: {
-            operation: 'system_health_check',
-          },
-        });
-        
-        healthStatus.overall = 'unhealthy';
-        return healthStatus;
+    scheduler: 'healthy' as 'healthy' | 'unhealthy',
+    overall: 'unknown' as 'healthy' | 'unhealthy' | 'degraded',
+  };
+  
+  try {
+    // Check database connection
+    try {
+      const { supabase } = await import('./supabase');
+      if (supabase) {
+        const { error } = await supabase.from('portfolios').select('count', { count: 'exact' });
+        healthStatus.database = error ? 'unhealthy' : 'healthy';
+      } else {
+        healthStatus.database = 'unhealthy';
       }
+    } catch (error) {
+      healthStatus.database = 'unhealthy';
     }
-  );
+    
+    // Check API connections (basic connectivity)
+    try {
+      const { alpacaService } = await import('./alpaca');
+      await alpacaService.getAccount();
+      healthStatus.apis.alpaca = 'healthy';
+    } catch (error) {
+      healthStatus.apis.alpaca = 'unhealthy';
+    }
+    
+    try {
+      const { geminiService } = await import('./gemini');
+      if (geminiService.isConfigured()) {
+        await geminiService.getBalances();
+        healthStatus.apis.gemini = 'healthy';
+      }
+    } catch (error) {
+      healthStatus.apis.gemini = 'unhealthy';
+    }
+    
+    // Determine overall health
+    const unhealthyComponents = [
+      healthStatus.database === 'unhealthy',
+      healthStatus.apis.alpaca === 'unhealthy',
+      healthStatus.apis.gemini === 'unhealthy',
+    ].filter(Boolean).length;
+    
+    if (unhealthyComponents === 0) {
+      healthStatus.overall = 'healthy';
+    } else if (unhealthyComponents >= 2) {
+      healthStatus.overall = 'unhealthy';
+    } else {
+      healthStatus.overall = 'degraded';
+    }
+    
+    console.log('System health check completed:', {
+      database: healthStatus.database,
+      alpaca: healthStatus.apis.alpaca,
+      gemini: healthStatus.apis.gemini,
+      overall: healthStatus.overall
+    });
+    
+    // Track health metrics
+    console.log('System health metrics:', {
+      overall: healthStatus.overall === 'healthy' ? 1 : 0,
+      database: healthStatus.database === 'healthy' ? 1 : 0,
+      alpaca: healthStatus.apis.alpaca === 'healthy' ? 1 : 0,
+      gemini: healthStatus.apis.gemini === 'healthy' ? 1 : 0
+    });
+    
+    return healthStatus;
+  } catch (error) {
+    console.error('System health check failed:', error);
+    
+    healthStatus.overall = 'unhealthy';
+    return healthStatus;
+  }
 };

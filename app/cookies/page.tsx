@@ -150,12 +150,6 @@ export default function CookiePolicyPage() {
                     <td className="px-4 py-3 text-sm text-gray-700">Remember theme setting</td>
                     <td className="px-4 py-3 text-sm text-gray-700">1 year</td>
                   </tr>
-                  <tr>
-                    <td className="px-4 py-3 text-sm text-gray-700">sentry-sc</td>
-                    <td className="px-4 py-3 text-sm text-gray-700">Sentry</td>
-                    <td className="px-4 py-3 text-sm text-gray-700">Error tracking session</td>
-                    <td className="px-4 py-3 text-sm text-gray-700">Session</td>
-                  </tr>
                 </tbody>
               </table>
             </div>
@@ -180,11 +174,6 @@ export default function CookiePolicyPage() {
             <h3 className="text-xl font-medium text-gray-900 mb-3">4.3 Vercel</h3>
             <p className="text-gray-700 mb-4">
               Our hosting provider may set cookies for performance optimization and load balancing.
-            </p>
-
-            <h3 className="text-xl font-medium text-gray-900 mb-3">4.4 Sentry</h3>
-            <p className="text-gray-700">
-              Our error monitoring service may set cookies to track error sessions and improve our application stability.
             </p>
           </section>
 

@@ -327,7 +327,6 @@ Users can:
 ### 5.3 Third-Party Cookies
 We may use third-party services that set cookies:
 - Google Analytics (analytics)
-- Sentry (error monitoring)
 - Vercel (hosting and performance)
 
 ## 6. Security Monitoring

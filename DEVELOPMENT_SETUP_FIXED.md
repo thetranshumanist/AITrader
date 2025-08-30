@@ -2,7 +2,7 @@
 
 ## ✅ Issues Resolved
 
-1. **Sentry Configuration Migration**: Moved from separate config files to `instrumentation.ts`
+1. **Error Monitoring Configuration**: Removed external monitoring service dependencies
 2. **Environment Variables**: Created `.env.local` with development-friendly values
 3. **Crypto Module Resolution**: Fixed Node.js crypto import in `lib/gemini.ts`
 4. **Supabase Configuration**: Made more resilient to handle missing credentials

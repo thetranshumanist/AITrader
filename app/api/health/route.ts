@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { scheduler } from '@/lib/scheduler';
 import { trackBusinessMetric } from '@/lib/monitoring';
-import * as Sentry from '@sentry/nextjs';
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic';
@@ -192,16 +191,11 @@ export async function GET(request: NextRequest) {
     // Track overall health
     trackBusinessMetric('health.overall', healthCheck.status === 'healthy' ? 1 : 0);
 
-    // Log health check to Sentry
-    Sentry.addBreadcrumb({
-      category: 'health_check',
-      message: `Health check completed: ${healthCheck.status}`,
-      level: healthCheck.status === 'healthy' ? 'info' : 'warning',
-      data: {
-        status: healthCheck.status,
-        unhealthyChecks,
-        uptime: healthCheck.uptime,
-      },
+    // Log health check
+    console.log('Health check completed:', {
+      status: healthCheck.status,
+      unhealthyChecks,
+      uptime: healthCheck.uptime,
     });
 
     // Return appropriate HTTP status
@@ -212,12 +206,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error: any) {
     // Critical error in health check itself
-    Sentry.captureException(error, {
-      tags: {
-        operation: 'health_check',
-        component: 'health-api',
-      },
-    });
+    console.error('Health check system failure:', error);
 
     const errorResponse: HealthCheckResult = {
       ...healthCheck,

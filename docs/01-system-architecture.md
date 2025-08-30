@@ -43,7 +43,6 @@ graph TB
     end
     
     subgraph "Monitoring & Analytics"
-        T[Sentry Error Tracking]
         U[Performance Metrics]
         V[Audit Logging]
     end
@@ -161,7 +160,7 @@ graph LR
 - **performance_metrics**: Daily performance calculations
 
 ### 5.2 Relationships
-```mermaid
+``mermaid
 erDiagram
     users ||--o{ portfolios : owns
     portfolios ||--o{ trades : contains
@@ -226,7 +225,7 @@ sequenceDiagram
 ## 8. Monitoring & Observability
 
 ### 8.1 Error Tracking
-- **Sentry Integration**: Real-time error monitoring
+- **Custom Error Handling**: Real-time error monitoring
 - **Custom Metrics**: Trading performance metrics
 - **Health Checks**: Automated system health monitoring
 - **Alerting**: Critical error notifications
@@ -246,7 +245,7 @@ sequenceDiagram
 - **Preview Deployments**: Branch-based deployments
 
 ### 9.2 CI/CD Pipeline
-```mermaid
+``mermaid
 graph LR
     A[Git Push] --> B[GitHub Actions]
     B --> C[Run Tests]

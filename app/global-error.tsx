@@ -1,24 +1,13 @@
 'use client';
 
-import * as Sentry from '@sentry/nextjs';
-
 interface GlobalErrorProps {
   error: (Error | any) & { digest?: string };
   reset: () => void;
 }
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
-  // Log error to Sentry
-  Sentry.captureException(error, {
-    tags: {
-      component: 'global-error-handler',
-      section: 'app-router',
-    },
-    extra: {
-      digest: error.digest,
-      errorBoundary: 'global',
-    },
-  });
+  // Log error to console
+  console.error('Global error caught:', error);
 
   return (
     <html>

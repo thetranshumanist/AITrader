@@ -58,7 +58,6 @@ try {
   console.log('• Supabase: https://supabase.com/dashboard');
   console.log('• Alpaca Markets: https://alpaca.markets/');
   console.log('• Gemini (optional): https://www.gemini.com/');
-  console.log('• Sentry (optional): https://sentry.io/');
   
 } catch (error) {
   console.log(chalk.red('❌ Failed to create .env.local'));

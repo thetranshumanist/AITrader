@@ -1,34 +1,24 @@
-import * as Sentry from '@sentry/nextjs';
-
-interface LogLevel {
-  level: 'info' | 'warn' | 'error' | 'debug';
-  color: string;
-}
-
-const LOG_LEVELS: Record<string, LogLevel> = {
-  info: { level: 'info', color: '\x1b[36m' }, // Cyan
-  warn: { level: 'warn', color: '\x1b[33m' }, // Yellow
-  error: { level: 'error', color: '\x1b[31m' }, // Red
-  debug: { level: 'debug', color: '\x1b[35m' }, // Magenta
-};
-
-const RESET_COLOR = '\x1b[0m';
-
+// Simple logger implementation without Sentry
 class Logger {
   private isDevelopment = process.env.NODE_ENV === 'development';
-  private sentryEnabled = typeof window === 'undefined' ? 
-    Boolean(process.env.SENTRY_DSN) : 
-    Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN);
 
   private formatMessage(level: string, message: string, ...args: any[]): string {
     const timestamp = new Date().toISOString();
-    const logLevel = LOG_LEVELS[level];
+    const levelColors: Record<string, string> = {
+      info: '\x1b[36m', // Cyan
+      warn: '\x1b[33m', // Yellow
+      error: '\x1b[31m', // Red
+      debug: '\x1b[35m', // Magenta
+    };
+    
+    const color = levelColors[level] || '';
+    const resetColor = '\x1b[0m';
     
     if (this.isDevelopment) {
-      return `${logLevel.color}[${timestamp}] [${logLevel.level.toUpperCase()}]${RESET_COLOR} ${message}`;
+      return `${color}[${timestamp}] [${level.toUpperCase()}]${resetColor} ${message}`;
     }
     
-    return `[${timestamp}] [${logLevel.level.toUpperCase()}] ${message}`;
+    return `[${timestamp}] [${level.toUpperCase()}] ${message}`;
   }
 
   private log(level: string, message: string, ...args: any[]) {
@@ -36,41 +26,11 @@ class Logger {
     
     if (level === 'error') {
       console.error(formattedMessage, ...args);
-      
-      // Send errors to Sentry
-      if (this.sentryEnabled) {
-        if (args.length > 0 && args[0] instanceof Error) {
-          Sentry.captureException(args[0], {
-            tags: { source: 'logger' },
-            extra: { 
-              message,
-              additionalArgs: args.slice(1),
-            },
-          });
-        } else {
-          Sentry.captureMessage(message, 'error');
-        }
-      }
     } else if (level === 'warn') {
       console.warn(formattedMessage, ...args);
-      
-      // Send warnings to Sentry in production
-      if (this.sentryEnabled && !this.isDevelopment) {
-        Sentry.captureMessage(message, 'warning');
-      }
     } else {
       console.log(formattedMessage, ...args);
     }
-
-    // In production, you might want to send logs to an external service
-    if (!this.isDevelopment) {
-      this.sendToExternalLogger(level, message, args);
-    }
-  }
-
-  private sendToExternalLogger(level: string, message: string, args: any[]) {
-    // External logging is now handled by Sentry
-    // Additional services like LogRocket, DataDog, etc. can be added here
   }
 
   info(message: string, ...args: any[]) {

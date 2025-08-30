@@ -21,11 +21,6 @@
     "GOOGLE_SHEETS_PRIVATE_KEY": "@aitrader-google-sheets-private-key",
     "GOOGLE_SHEETS_CLIENT_EMAIL": "@aitrader-google-sheets-client-email",
     "GOOGLE_SHEETS_SPREADSHEET_ID": "@aitrader-google-sheets-spreadsheet-id",
-    "SENTRY_DSN": "@aitrader-sentry-dsn",
-    "NEXT_PUBLIC_SENTRY_DSN": "@aitrader-sentry-dsn",
-    "SENTRY_ORG": "@aitrader-sentry-org",
-    "SENTRY_PROJECT": "@aitrader-sentry-project",
-    "SENTRY_AUTH_TOKEN": "@aitrader-sentry-auth-token",
     "ENABLE_SCHEDULER": "true",
     "CRON_SECRET": "@aitrader-cron-secret",
     "NODE_ENV": "production"

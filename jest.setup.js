@@ -25,30 +25,6 @@ jest.mock('next/navigation', () => ({
   },
 }))
 
-// Mock Sentry
-jest.mock('@sentry/nextjs', () => ({
-  captureException: jest.fn(),
-  captureMessage: jest.fn(),
-  addBreadcrumb: jest.fn(),
-  setUser: jest.fn(),
-  withScope: jest.fn((callback) => callback({
-    setTag: jest.fn(),
-    setContext: jest.fn(),
-  })),
-  startSpan: jest.fn((config, callback) => {
-    const mockSpan = {
-      setTag: jest.fn(),
-      setData: jest.fn(),
-    }
-    return callback(mockSpan)
-  }),
-  metrics: {
-    increment: jest.fn(),
-    distribution: jest.fn(),
-    gauge: jest.fn(),
-  },
-}))
-
 // Mock environment variables
 process.env.NODE_ENV = 'test'
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'

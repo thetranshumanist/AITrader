@@ -116,11 +116,6 @@ checkEnvVar('GOOGLE_SHEETS_PRIVATE_KEY', false, 'For Google Sheets integration')
 checkEnvVar('GOOGLE_SHEETS_CLIENT_EMAIL', false, 'For Google Sheets integration');
 checkEnvVar('GOOGLE_SHEETS_SPREADSHEET_ID', false, 'For Google Sheets integration');
 
-checkEnvVar('SENTRY_DSN', false, 'For error monitoring and logging');
-checkEnvVar('SENTRY_ORG', false, 'For error monitoring and logging');
-checkEnvVar('SENTRY_PROJECT', false, 'For error monitoring and logging');
-checkEnvVar('SENTRY_AUTH_TOKEN', false, 'For error monitoring and logging');
-
 console.log('');
 console.log('Checking System Variables:');
 console.log('------------------------');

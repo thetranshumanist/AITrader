@@ -1,7 +1,6 @@
 'use client';
 
 import React, { Component, ReactNode } from 'react';
-import * as Sentry from '@sentry/nextjs';
 import { AlertCircle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -15,7 +14,6 @@ interface ErrorBoundaryProps {
 interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
-  eventId?: string;
 }
 
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -32,23 +30,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log error to Sentry
-    const eventId = Sentry.captureException(error, {
-      tags: {
-        component: 'error-boundary',
-        ...this.props.tags,
-      },
-      contexts: {
-        react: {
-          componentStack: errorInfo.componentStack,
-        },
-      },
-      extra: {
-        errorInfo,
-      },
-    });
-
-    this.setState({ eventId });
+    // Log error to console
+    console.error('Error caught by ErrorBoundary:', error);
+    console.error('Error info:', errorInfo);
 
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
@@ -58,7 +42,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: undefined, eventId: undefined });
+    this.setState({ hasError: false, error: undefined });
   };
 
   render() {
@@ -119,12 +103,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                     )}
                   </div>
                 </details>
-              )}
-
-              {this.state.eventId && (
-                <p className="text-xs text-muted-foreground text-center">
-                  Error ID: {this.state.eventId}
-                </p>
               )}
             </CardContent>
           </Card>

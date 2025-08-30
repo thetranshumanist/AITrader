@@ -106,7 +106,6 @@ Set all required secrets as documented in `DEPLOYMENT_SETUP.md`:
 - Core Vercel secrets (VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID)
 - Supabase configuration
 - Trading API keys (Alpaca, Gemini)
-- Monitoring (Sentry)
 - Other application-specific variables
 
 ## Prevention Measures

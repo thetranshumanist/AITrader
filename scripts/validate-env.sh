@@ -79,12 +79,6 @@ check_env_var "GOOGLE_SHEETS_PRIVATE_KEY" false "For Google Sheets integration"
 check_env_var "GOOGLE_SHEETS_CLIENT_EMAIL" false "For Google Sheets integration"
 check_env_var "GOOGLE_SHEETS_SPREADSHEET_ID" false "For Google Sheets integration"
 
-# Sentry (optional but recommended)
-check_env_var "SENTRY_DSN" false "For error monitoring and logging"
-check_env_var "SENTRY_ORG" false "For error monitoring and logging"
-check_env_var "SENTRY_PROJECT" false "For error monitoring and logging"
-check_env_var "SENTRY_AUTH_TOKEN" false "For error monitoring and logging"
-
 echo ""
 echo "Checking System Variables:"
 echo "------------------------"
